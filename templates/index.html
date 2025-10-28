@@ -1,22 +1,26 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>School Website</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <meta charset="UTF-8">
+  <title>Sawmill Website</title>
 </head>
-<body class="bg-light text-center">
-    <div class="container mt-5">
-        <img src="{{ url_for('static', filename='logo.png') }}" width="150" alt="School Logo"><br><br>
-        <h1>Welcome to Our School Website</h1>
-        <p class="lead">Upload, View, and Share Files Easily</p>
-        <a href="/view" class="btn btn-success">View Uploaded Files</a>
+<body>
+  <h2>Welcome to Sawmill Website</h2>
 
-        {% if logged_in %}
-            <a href="/upload" class="btn btn-primary">Upload Files</a>
-            <a href="/logout" class="btn btn-danger">Logout</a>
-        {% else %}
-            <a href="/login" class="btn btn-secondary">Login as Admin</a>
-        {% endif %}
-    </div>
+  {% if logged_in %}
+    <p>Logged in as: <b>{{ session['user'] }}</b> ({{ role }})</p>
+    <a href="{{ url_for('upload_file') }}">Upload File</a> |
+    <a href="{{ url_for('view_files') }}">View Files</a> |
+    {% if role == 'admin' %}
+      <a href="{{ url_for('change_password') }}">Change Password</a> |
+    {% endif %}
+    <a href="{{ url_for('logout') }}">Logout</a>
+  {% else %}
+    <a href="{{ url_for('login') }}">Login</a>
+  {% endif %}
 </body>
 </html>
+{% if role == 'admin' %}
+  <a href="{{ url_for('manage_users') }}">Manage Users</a> |
+{% endif %}
+<a href="{{ url_for('change_password') }}">Change My Password</a>

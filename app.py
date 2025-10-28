@@ -15,9 +15,36 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 # Fixed sections
 SECTIONS = ["Certificate of Appearance", "Memorandum", "Leave Form", "DTR"]
 
-# Dummy credentials (⚠️ You can set real ones later using Render Environment Variables)
-USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
-PASSWORD = os.environ.get("ADMIN_PASSWORD", "12345")
+# Credentials file
+CREDENTIAL_FILE = BASE_DIR / "credentials.txt"
+
+
+# ---------- HELPER FUNCTIONS ---------- #
+
+def load_credentials():
+    users = []
+    if CREDENTIAL_FILE.exists():
+        with open(CREDENTIAL_FILE, "r") as f:
+            for line in f:
+                parts = line.strip().split(",")
+                if len(parts) == 3:
+                    users.append({"username": parts[0], "password": parts[1], "role": parts[2]})
+    return users
+
+
+def save_credentials(users):
+    with open(CREDENTIAL_FILE, "w") as f:
+        for u in users:
+            f.write(f"{u['username']},{u['password']},{u['role']}\n")
+
+
+def update_password(username, new_password):
+    users = load_credentials()
+    for u in users:
+        if u["username"] == username:
+            u["password"] = new_password
+            break
+    save_credentials(users)
 
 
 # ---------- ROUTES ---------- #
@@ -25,7 +52,8 @@ PASSWORD = os.environ.get("ADMIN_PASSWORD", "12345")
 @app.route('/')
 def index():
     logged_in = 'user' in session
-    return render_template('index.html', logged_in=logged_in)
+    role = session.get('role', None)
+    return render_template('index.html', logged_in=logged_in, role=role)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -34,18 +62,21 @@ def login():
         username = request.form['username']
         password = request.form['password']
 
-        if username == USERNAME and password == PASSWORD:
-            session['user'] = username
-            return redirect(url_for('index'))
-        else:
-            return render_template('login.html', error="Invalid username or password")
+        users = load_credentials()
+        for u in users:
+            if u["username"] == username and u["password"] == password:
+                session['user'] = username
+                session['role'] = u["role"]
+                return redirect(url_for('index'))
+
+        return render_template('login.html', error="Invalid username or password")
 
     return render_template('login.html')
 
 
 @app.route('/logout')
 def logout():
-    session.pop('user', None)
+    session.clear()
     return redirect(url_for('index'))
 
 
@@ -74,7 +105,7 @@ def upload_file():
         <a href="/view">View All Files</a>
         '''
 
-    return render_template('upload.html')
+    return render_template('upload.html', role=session.get('role'))
 
 
 @app.route('/uploads/<section>/<filename>')
@@ -85,6 +116,9 @@ def uploaded_file(section, filename):
 
 @app.route('/view')
 def view_files():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
     files_by_section = {}
     for section in SECTIONS:
         section_path = app.config['UPLOAD_FOLDER'] / section
@@ -93,13 +127,13 @@ def view_files():
         else:
             files = []
         files_by_section[section] = files
-    logged_in = 'user' in session
-    return render_template('view.html', files_by_section=files_by_section, logged_in=logged_in)
+
+    return render_template('view.html', files_by_section=files_by_section, role=session.get('role'))
 
 
 @app.route('/delete/<section>/<filename>', methods=['POST'])
 def delete_file(section, filename):
-    if 'user' not in session:
+    if 'user' not in session or session.get('role') != 'admin':
         return redirect(url_for('login'))
 
     file_path = app.config['UPLOAD_FOLDER'] / section / filename
@@ -108,7 +142,43 @@ def delete_file(section, filename):
     return redirect(url_for('view_files'))
 
 
-# ✅ This part is important for Render!
+# ---------- PASSWORD MANAGEMENT ---------- #
+
+@app.route('/change_password', methods=['GET', 'POST'])
+def change_password():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+
+    username = session['user']
+
+    if request.method == 'POST':
+        new_password = request.form['new_password']
+        confirm_password = request.form['confirm_password']
+
+        if new_password != confirm_password:
+            return render_template('change_password.html', error="Passwords do not match.")
+        else:
+            update_password(username, new_password)
+            return render_template('change_password.html', success="Password updated successfully!")
+
+    return render_template('change_password.html')
+
+
+@app.route('/admin/manage_users', methods=['GET', 'POST'])
+def manage_users():
+    if 'user' not in session or session.get('role') != 'admin':
+        return redirect(url_for('login'))
+
+    users = load_credentials()
+
+    if request.method == 'POST':
+        username = request.form['username']
+        new_password = request.form['new_password']
+        update_password(username, new_password)
+        return render_template('manage_users.html', users=users, success=f"Password updated for {username}")
+
+    return render_template('manage_users.html', users=users)
+
+
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=False)
+    app.run(debug=True)

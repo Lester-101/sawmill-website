@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Users</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+        h2 {
+            color: #333;
+        }
+        form {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            width: 350px;
+            background-color: #f9f9f9;
+        }
+        label {
+            font-weight: bold;
+        }
+        select, input[type="password"], button {
+            width: 100%;
+            margin-top: 8px;
+            margin-bottom: 15px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        a {
+            text-decoration: none;
+            color: #007BFF;
+        }
+    </style>
+</head>
+<body>
+    <h2>Admin: Manage User Passwords</h2>
+
+    {% if success %}
+        <p style="color:green;">{{ success }}</p>
+    {% endif %}
+
+    {% if error %}
+        <p style="color:red;">{{ error }}</p>
+    {% endif %}
+
+    <form method="POST">
+        <label for="username">Select User:</label><br>
+        <select name="username" id="username" required>
+            {% for u in users %}
+                <option value="{{ u.username }}">{{ u.username }} ({{ u.role }})</option>
+            {% endfor %}
+        </select>
+
+        <label for="new_password">New Password:</label><br>
+        <input type="password" name="new_password" id="new_password" required>
+
+        <button type="submit">Update Password</button>
+    </form>
+
+    <br>
+    <a href="/">← Back to Home</a>
+</body>
+</html>
