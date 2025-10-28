@@ -1,26 +1,114 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Sawmill Website</title>
+    <meta charset="UTF-8">
+    <title>Sawmill Website</title>
+    <style>
+        body {
+            font-family: 'Poppins', Arial, sans-serif;
+            background: linear-gradient(135deg, #0d6efd, #28a745);
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: #ffffff;
+            padding: 40px 60px;
+            border-radius: 20px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .logo {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #0d6efd;
+            margin-bottom: 10px;
+        }
+
+        h3 {
+            color: #444;
+            font-weight: normal;
+        }
+
+        .role {
+            color: #888;
+            font-style: italic;
+        }
+
+        .links {
+            margin-top: 25px;
+        }
+
+        .button {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 6px;
+            transition: 0.3s ease;
+        }
+
+        .button:hover {
+            background-color: #218838;
+            transform: scale(1.05);
+        }
+
+        .logout {
+            background-color: #dc3545;
+        }
+
+        .logout:hover {
+            background-color: #c82333;
+        }
+
+        footer {
+            margin-top: 30px;
+            color: #777;
+            font-size: 0.9em;
+        }
+    </style>
 </head>
 <body>
-  <h2>Welcome to Sawmill Website</h2>
+    <div class="container">
+        <!-- 🏫 Add your school logo here -->
+        <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Sawmill Logo" class="logo">
 
-  {% if logged_in %}
-    <p>Logged in as: <b>{{ session['user'] }}</b> ({{ role }})</p>
-    <a href="{{ url_for('upload_file') }}">Upload File</a> |
-    <a href="{{ url_for('view_files') }}">View Files</a> |
-    {% if role == 'admin' %}
-      <a href="{{ url_for('change_password') }}">Change Password</a> |
-    {% endif %}
-    <a href="{{ url_for('logout') }}">Logout</a>
-  {% else %}
-    <a href="{{ url_for('login') }}">Login</a>
-  {% endif %}
+        <h1>Welcome to Sawmill Website</h1>
+
+        {% if logged_in %}
+            <h3>Logged in as: <strong>{{ session['user'] }}</strong> <span class="role">({{ session['role'] }})</span></h3>
+
+            <div class="links">
+                <a href="{{ url_for('upload_file') }}" class="button">Upload File</a>
+                <a href="{{ url_for('view_files') }}" class="button">View Files</a>
+                <a href="{{ url_for('change_password') }}" class="button">Change My Password</a>
+                {% if session['role'] == 'admin' %}
+                    <a href="{{ url_for('manage_users') }}" class="button">Manage Users</a>
+                {% endif %}
+                <a href="{{ url_for('logout') }}" class="button logout">Logout</a>
+            </div>
+        {% else %}
+            <p>Please log in to continue.</p>
+            <a href="{{ url_for('login') }}" class="button">Login</a>
+        {% endif %}
+
+        <footer>
+            &copy; {{ 2025 }} Sawmill School | All Rights Reserved
+        </footer>
+    </div>
 </body>
 </html>
-{% if role == 'admin' %}
-  <a href="{{ url_for('manage_users') }}">Manage Users</a> |
-{% endif %}
-<a href="{{ url_for('change_password') }}">Change My Password</a>
