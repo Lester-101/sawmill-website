@@ -26,9 +26,10 @@
         }
 
         .logo {
-            width: 100px;
-            height: 100px;
+            width: 120px;
+            height: 120px;
             margin-bottom: 20px;
+            object-fit: contain;
         }
 
         h1 {
@@ -84,7 +85,7 @@
 </head>
 <body>
     <div class="container">
-        <!-- 🏫 Add your school logo here -->
+        <!-- 🏫 School logo (visible and centered) -->
         <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Sawmill Logo" class="logo">
 
         <h1>Welcome to Sawmill Website</h1>
@@ -95,10 +96,14 @@
             <div class="links">
                 <a href="{{ url_for('upload_file') }}" class="button">Upload File</a>
                 <a href="{{ url_for('view_files') }}" class="button">View Files</a>
-                <a href="{{ url_for('change_password') }}" class="button">Change My Password</a>
+
+
                 {% if session['role'] == 'admin' %}
                     <a href="{{ url_for('manage_users') }}" class="button">Manage Users</a>
+                {% else %}
+                    <a href="{{ url_for('change_password') }}" class="button">Change My Password</a>
                 {% endif %}
+
                 <a href="{{ url_for('logout') }}" class="button logout">Logout</a>
             </div>
         {% else %}
