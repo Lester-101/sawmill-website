@@ -1,10 +1,10 @@
 import uuid
 from pathlib import Path
-
 from flask import Flask, render_template, request, url_for, send_from_directory, redirect, session
+import os
 
 app = Flask(__name__)
-app.secret_key = 'replace_this_with_a_random_secret_key'  # important for sessions
+app.secret_key = os.environ.get("SECRET_KEY", "replace_this_with_a_random_secret_key")
 
 # Define upload folder
 BASE_DIR = Path(__file__).resolve().parent
@@ -15,9 +15,9 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 # Fixed sections
 SECTIONS = ["Certificate of Appearance", "Memorandum", "Leave Form", "DTR"]
 
-# Dummy credentials
-USERNAME = "admin"
-PASSWORD = "12345"   # 🔒 Change this before deployment!
+# Dummy credentials (⚠️ You can set real ones later using Render Environment Variables)
+USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
+PASSWORD = os.environ.get("ADMIN_PASSWORD", "12345")
 
 
 # ---------- ROUTES ---------- #
@@ -108,5 +108,7 @@ def delete_file(section, filename):
     return redirect(url_for('view_files'))
 
 
+# ✅ This part is important for Render!
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
