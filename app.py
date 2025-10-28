@@ -90,7 +90,8 @@ def upload_file():
         section = request.form['section']
 
         if file.filename == '' or section not in SECTIONS:
-            return "Invalid selection or no file selected."
+            error = "Please select a section and choose a file."
+            return render_template('upload.html', error=error, sections=SECTIONS)
 
         section_path = app.config['UPLOAD_FOLDER'] / section
         section_path.mkdir(parents=True, exist_ok=True)
@@ -99,13 +100,10 @@ def upload_file():
         file_path = section_path / unique_filename
         file.save(file_path)
 
-        return f'''
-        <h3>File uploaded successfully!</h3>
-        <a href="{url_for('uploaded_file', section=section, filename=unique_filename)}" target="_blank">Access File</a><br>
-        <a href="/view">View All Files</a>
-        '''
+        message = f"File uploaded successfully to '{section}' section!"
+        return render_template('upload.html', message=message, sections=SECTIONS)
 
-    return render_template('upload.html', role=session.get('role'))
+    return render_template('upload.html', sections=SECTIONS)
 
 
 @app.route('/uploads/<section>/<filename>')
